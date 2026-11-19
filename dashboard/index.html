@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' file:; style-src 'self' file: 'unsafe-inline'; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Signal Loom · Launch Research Desk</title>
+  <link rel="stylesheet" href="desk.css">
+  <script defer src="../data.js"></script>
+  <script defer src="desk.js"></script>
+</head>
+<body>
+  <a class="skip" href="#desk">Skip to research desk</a>
+  <header class="mast">
+    <div class="wrap mast-inner">
+      <div class="identity"><span class="loom-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>SIGNAL <b>LOOM</b></span><span class="mast-divider"></span><span class="mast-label">TOKEN RADAR</span></div>
+      <div class="edition"><span class="pin" aria-hidden="true"></span> OFFLINE EDITION <time id="edition-date"></time></div>
+    </div>
+  </header>
+  <main id="desk" class="wrap" tabindex="-1">
+    <section id="board-view" aria-labelledby="board-title">
+      <div class="heading">
+        <div>
+          <div class="kicker">01 <span></span> THE LAUNCH BOARD</div>
+          <h1 id="board-title" tabindex="-1">Launch research desk</h1>
+          <p class="lead">Rank the records. Inspect the evidence. Research the route before assuming a reward.</p>
+        </div>
+        <div class="edition-note"><span class="eyebrow">FROZEN SNAPSHOT</span><strong id="universe-size"></strong><span>DefiLlama · not a live feed</span></div>
+      </div>
+      <div id="scopes" class="scopes" role="group" aria-label="Token evidence scope">
+        <button type="button" data-scope="watch" aria-pressed="true">House watchlist</button>
+        <button type="button" data-scope="early" aria-pressed="false">No token recorded</button>
+        <button type="button" data-scope="market" aria-pressed="false">Token recorded</button>
+        <button type="button" data-scope="all" aria-pressed="false">All records</button>
+      </div>
+      <div class="filters" role="group" aria-label="Refine records">
+        <label for="search">SEARCH<input id="search" type="search" placeholder="Name, ticker or chain" autocomplete="off"></label>
+        <label for="category">CATEGORY<select id="category"><option value="">All categories</option></select></label>
+        <label for="chain">CHAIN<select id="chain"><option value="">All chains</option></select></label>
+        <button id="clear-filters" class="plain-button" type="button">Clear filters</button>
+      </div>
+      <div class="board-layout">
+        <section class="ledger" aria-labelledby="list-title">
+          <div class="ledger-head"><h2 id="list-title">House watchlist</h2><p id="result-count" class="eyebrow" role="status"></p></div>
+          <table>
+            <caption class="sr-only">Snapshot protocols ranked by model-implied hypothetical token market cap in US dollars</caption>
+            <thead><tr>
+              <th scope="col" class="rank-col" title="Rank across all snapshot records">#</th>
+              <th scope="col"><button type="button" data-sort="name">Protocol</button></th>
+              <th scope="col" class="num"><button type="button" data-sort="implied_value_usd" title="Model-implied token market cap in USD, not token price or FDV">Token-cap proxy</button></th>
+              <th scope="col" class="num tvl-col"><button type="button" data-sort="tvl_usd">TVL</button></th>
+              <th scope="col" class="num"><button type="button" data-sort="change_7d">7d TVL</button></th>
+              <th scope="col" class="num age-col"><button type="button" data-sort="tracking_years">Tracked</button></th>
+            </tr></thead>
+            <tbody id="results"></tbody>
+          </table>
+          <p id="empty" class="notice" hidden>No matches in this scope. Clear the filters or choose a different scope.</p>
+          <noscript>JavaScript must be enabled to read the generated board.</noscript>
+          <p id="data-error" class="notice" hidden>Board data is unavailable. Run the entry and open the generated dashboard/index.html beside data.js in its parent directory.</p>
+        </section>
+        <aside class="evidence" aria-label="Evidence desk">
+          <div class="evidence-title"><span class="eyebrow">READING THE TAPE</span><h2>Evidence desk</h2></div>
+          <section class="rail-block">
+            <span class="eyebrow">01 / HOUSE RULE</span>
+            <h3>No token recorded</h3>
+            <p id="floor-note"></p>
+            <p>Missing token metadata is not proof that a token does not exist.</p>
+          </section>
+          <section class="rail-block">
+            <span class="eyebrow">02 / CROSS-SECTION</span>
+            <h3>Peer calibration</h3>
+            <p id="value-target">Hypothetical token market cap in USD, fitted to traded-token peers; not token price, FDV or a launch promise.</p>
+            <p id="peer-note"></p>
+            <dl id="holdout" class="comparison"></dl>
+            <p>Tracking age is time in DefiLlama, not time without a token. Estimates are not issuance or return forecasts.</p>
+          </section>
+        </aside>
+      </div>
+    </section>
+    <section id="case-view" hidden aria-labelledby="case-title">
+      <nav class="case-nav" aria-label="Case navigation">
+        <a id="back-to-board" href="#board">← Back to board</a><span id="case-rank" class="eyebrow"></span>
+      </nav>
+      <header class="heading case-heading">
+        <div>
+          <div class="kicker">02 <span></span> PROTOCOL CASE</div>
+          <h1 id="case-title" tabindex="-1"></h1>
+          <p class="lead" id="case-label"></p>
+        </div>
+        <div class="case-price"><span class="eyebrow">TOKEN-CAP PROXY · USD</span><strong id="case-value"></strong><span id="case-observed"></span></div>
+      </header>
+      <dl class="case-facts" id="case-facts" aria-label="Inputs from the snapshot"></dl>
+      <div class="case-layout">
+        <section class="case-panel value-panel" aria-labelledby="value-title">
+          <div class="panel-head"><span class="eyebrow">A / THE VALUATION</span><h2 id="value-title">Value anatomy</h2></div>
+          <p id="case-base" class="baseline"></p>
+          <div class="axis" aria-hidden="true"><span>LOWERS VALUE</span><span>BASE</span><span>RAISES VALUE</span></div>
+          <ul id="drivers" class="drivers" aria-label="Factors multiplying the reference value"></ul>
+          <div class="range"><span class="eyebrow">HELD-OUT PEER SPREAD · P10–P90</span><strong id="case-range"></strong>
+            <p>Translates errors on traded-token peers to this estimate. It is not a launch forecast or a confidence interval.</p>
+          </div>
+          <p id="case-cautions" class="case-cautions"></p>
+          <details id="methodology" class="methodology">
+            <summary>Model specification &amp; limits</summary>
+            <p id="method-formula"></p>
+            <p>G = 7d change / 25%, clipped to −1…1. A = log2(1 + tracked years) − 1, capped at eight years. Missing growth or an unusable date is neutral. Values are rounded to whole USD and bounded to $1…$100T.</p>
+            <p>Bounded positive slopes are assumptions, not causal findings. Huber loss downweights outliers; ridge regularization shrinks slopes toward priors. Tokens are deduplicated by Gecko ID, then ticker, keeping the largest-TVL record. Custody, bridges and token wrappers are excluded from calibration. Category peer counts are context, not separate category models.</p>
+            <p id="method-holdout"></p>
+          </details>
+        </section>
+        <section class="case-panel plan-panel" aria-labelledby="plan-title">
+          <div class="panel-head"><span class="eyebrow">B / THE FIELD NOTES</span><h2 id="plan-title">Farm research plan</h2><p id="plan-summary"></p></div>
+          <ol id="case-plan"></ol>
+          <p id="plan-boundary" class="plan-boundary">Research only: no wallets, signatures, trades, deposits or actual farming. Time boxes are estimates; paper costs are assumptions, not current network quotes. No verified campaign or reward is implied.</p>
+        </section>
+      </div>
+    </section>
+    <footer><span>SIGNAL LOOM / STATIC RESEARCH</span><span id="snapshot-source"></span></footer>
+  </main>
+</body>
+</html>
