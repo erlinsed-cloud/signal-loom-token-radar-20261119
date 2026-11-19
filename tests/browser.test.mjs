@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { rm } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -38,7 +39,8 @@ async function desk(t, dataset = fixture) {
     const page = await openChrome(t, join(dir, 'profile'), join(out, 'dashboard/index.html'));
     return { ...page, board };
   } finally {
-    t.after(() => rmSync(dir, { recursive: true, force: true }));
+    // Chromium subprocesses can still drain profile writes after the main process exits.
+    t.after(() => rm(dir, { recursive: true, force: true, maxRetries: 5 }));
   }
 }
 
@@ -139,6 +141,41 @@ browser('farm case labels research time as an estimate and forbids live financia
   await until(() => value(`!document.getElementById('case-view').hidden`));
   assert.match(await value(`document.getElementById('plan-summary').textContent`), /estimated/i);
   assert.match(await value(`document.getElementById('plan-boundary').textContent`), /no wallets.*trades.*deposits/i);
+});
+
+browser('observed-cap quality labels preserve null, zero, negative and positive raw values in the DOM', async (t) => {
+  const cases = [
+    { slug: 'missing-cap', name: 'Missing Cap', mcap_usd: null },
+    { slug: 'zero-cap', name: 'Zero Cap', mcap_usd: 0 },
+    { slug: 'negative-cap', name: 'Negative Cap', mcap_usd: -1 },
+    { slug: 'positive-cap', name: 'Positive Cap', mcap_usd: 42_000_000 },
+  ].map((fields) => exemplar(fields.slug, fields.name, {
+    ...fields, gecko_id: `token-${fields.slug}`, symbol: fields.slug.toUpperCase().replaceAll('-', '_'),
+  }));
+  const dataset = { ...fixture, protocols: cases, watchlist: cases.map(({ slug }) => slug) };
+  const { value, board } = await desk(t, dataset);
+  const seen = [];
+  for (const record of cases) {
+    await value(`location.hash = 'case=' + encodeURIComponent(${JSON.stringify(record.slug)})`);
+    await until(() => value(`document.getElementById('case-title').textContent === ${JSON.stringify(record.name)}`));
+    seen.push(await value(`(() => ({
+      label: document.getElementById('case-observed').textContent,
+      raw: document.getElementById('case-observed').dataset.rawMcap,
+      token: document.getElementById('case-label').textContent,
+    }))()`));
+  }
+  assert.deepEqual(seen, [
+    { label: 'Observed market cap: not recorded', raw: 'null', token: 'Lending  /  Token recorded · MISSING_CAP  /  House watchlist' },
+    { label: 'Observed market cap: unusable / non-positive (raw mcap_usd=0)', raw: '0', token: 'Lending  /  Token recorded · ZERO_CAP  /  House watchlist' },
+    { label: 'Observed market cap: unusable / non-positive (raw mcap_usd=-1)', raw: '-1', token: 'Lending  /  Token recorded · NEGATIVE_CAP  /  House watchlist' },
+    { label: 'Observed market cap: $42.00M', raw: '42000000', token: 'Lending  /  Token recorded · POSITIVE_CAP  /  House watchlist' },
+  ]);
+  const expectedRaw = Object.fromEntries(cases.map(({ slug, mcap_usd }) => [slug, [mcap_usd, true]]));
+  assert.deepEqual(Object.fromEntries(board.rows.map(({ slug, mcap_usd, token_recorded }) => [slug, [mcap_usd, token_recorded]])), expectedRaw);
+  assert.deepEqual(
+    Object.fromEntries(await value(`SIGNAL_LOOM.rows.map(({ slug, mcap_usd, token_recorded }) => [slug, [mcap_usd, token_recorded]])`)),
+    expectedRaw,
+  );
 });
 
 browser('model notes disclose transformations, bounded assumptions and the measured holdout', async (t) => {

@@ -110,6 +110,19 @@ function driverList(row) {
   });
 }
 
+function observedCapLabel(row) {
+  const observed = $('case-observed');
+  const raw = row.mcap_usd;
+  observed.dataset.rawMcap = raw === null ? 'null' : String(raw);
+  if (raw === null) {
+    observed.textContent = 'Observed market cap: not recorded';
+  } else if (raw <= 0) {
+    observed.textContent = `Observed market cap: unusable / non-positive (raw mcap_usd=${raw})`;
+  } else {
+    observed.textContent = `Observed market cap: ${usd(raw)}`;
+  }
+}
+
 function renderCase(row) {
   const model = data.model;
   const token = row.token_recorded ? `Token recorded${row.symbol ? ` · ${row.symbol}` : ''}` : 'No token recorded';
@@ -119,7 +132,7 @@ function renderCase(row) {
   $('case-value').textContent = usd(row.implied_value_usd);
   $('case-value').title = `${count(row.implied_value_usd)} USD`;
   $('case-value').dataset.value = row.implied_value_usd;
-  $('case-observed').textContent = row.mcap_usd === null ? 'Observed market cap: not recorded' : `Observed market cap: ${usd(row.mcap_usd)}`;
+  observedCapLabel(row);
   $('case-facts').replaceChildren(...[
     ['TVL · USD', usd(row.tvl_usd)], ['TVL CHANGE · 7 DAYS', percent(row.change_7d)],
     ['TRACKED SINCE', row.tracking_years === null ? 'Not usable' : `${row.listed_at} · ${track(row.tracking_years)}`],
